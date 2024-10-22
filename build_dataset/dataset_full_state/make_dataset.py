@@ -17,7 +17,7 @@ class create_dataset_from_nextsim_outputs:
 
     def prepare_data(self, sit):
         N = np.shape(sit)[0]
-        area = np.load("dxdy_grid.npy")
+        # area = np.load('dxdy_grid.npy')
         x_t = []
         for i in trange(N):
             x_t.append(ma.getdata(sit[i]).reshape((603, 528, 1)))
@@ -79,11 +79,31 @@ class create_dataset_from_nextsim_outputs:
         time_val = ds_val.time
         sit_val = sit_val.to_masked_array()
         print("Build Test")
-        ds_test = xr.open_mfdataset("../../Data/Moorings_2018m*.nc")
+        liste = []
+        years_train = ["2017", "2018"]
+        months = [
+            "01",
+            "02",
+            "03",
+            "04",
+            "05",
+            "06",
+            "07",
+            "08",
+            "09",
+            "10",
+            "11",
+            "12",
+        ]
+        for y in years_train:
+            for m in months:
+                liste.append("../../Data/Moorings_" + y + "m" + m + ".nc")
+        ds_test = xr.open_mfdataset(liste)
         sit_test = ds_test.sit
         time_test = ds_test.time
         sit_test = sit_test.to_masked_array()
 
+        np.save("time_test.npy", time_test)
         print("prepare test")
         x_test, mask = self.prepare_data(sit_test)
         print(np.shape(mask))
@@ -95,54 +115,32 @@ class create_dataset_from_nextsim_outputs:
         np.save("mask.npy", mask)
         x_tr = x_train
 
-        y_tr = np.concatenate(
-            [
-                x_train[4:-38] - x_train[2:-40],
-                x_train[22:-20] - x_train[2:-40],
-                x_train[42:] - x_train[2:-40],
-            ],
-            axis=3,
-        )
+        y_tr = np.concatenate([x_train[8:-2], x_train[10:]], axis=3)
         N_tr = np.shape(x_tr)[0]
-        x_train = np.zeros((N_tr - 42, N_shape, N_shape, 2))
+        x_train = np.zeros((N_tr - 10, N_shape, N_shape, 2))
         y_train = y_tr
-
-        for i in range(N_tr - 42):
-            x_train[i, :, :, 0] = x_tr[i + 0].squeeze()
-            x_train[i, :, :, 1] = x_tr[i + 2].squeeze()
-        y_v = np.concatenate(
-            [
-                x_val[4:-38] - x_val[2:-40],
-                x_val[22:-20] - x_val[2:-40],
-                x_val[42:] - x_val[2:-40],
-            ],
-            axis=3,
-        )
+        for i in range(N_tr - 10):
+            x_train[i, :, :, 0] = x_tr[i + 4].squeeze()
+            x_train[i, :, :, 1] = x_tr[i + 6].squeeze()
+        y_v = np.concatenate([x_val[8:-2], x_val[10:]], axis=3)
         x_v = x_val
 
         N_val = np.shape(x_v)[0]
-        x_val = np.zeros((N_val - 42, N_shape, N_shape, 2))
+        x_val = np.zeros((N_val - 10, N_shape, N_shape, 2))
         y_val = y_v
-        for i in range(N_val - 42):
-            x_val[i, :, :, 0] = x_v[i + 0].squeeze()
-            x_val[i, :, :, 1] = x_v[i + 2].squeeze()
+        for i in range(N_val - 10):
+            x_val[i, :, :, 0] = x_v[i + 4].squeeze()
+            x_val[i, :, :, 1] = x_v[i + 6].squeeze()
 
-        y_te = np.concatenate(
-            [
-                x_test[4:-38] - x_test[2:-40],
-                x_test[22:-20] - x_test[2:-40],
-                x_test[42:] - x_test[2:-40],
-            ],
-            axis=3,
-        )
+        y_te = np.concatenate([x_test[8:-2], x_test[10:]], axis=3)
         x_te = x_test
 
         N_test = np.shape(x_te)[0]
-        x_test = np.zeros((N_test - 42, N_shape, N_shape, 2))
+        x_test = np.zeros((N_test - 10, N_shape, N_shape, 2))
         y_test = y_te
-        for i in range(N_test - 42):
-            x_test[i, :, :, 0] = x_te[i + 0].squeeze()
-            x_test[i, :, :, 1] = x_te[i + 2].squeeze()
+        for i in range(N_test - 10):
+            x_test[i, :, :, 0] = x_te[i + 4].squeeze()
+            x_test[i, :, :, 1] = x_te[i + 6].squeeze()
 
         source = xr.open_dataset("../../Data/Moorings_2009m01.nc")
         lat_source = source.variables["latitude"][91:, 8:-8]
@@ -155,8 +153,8 @@ class create_dataset_from_nextsim_outputs:
         print("VAL INPUTS")
         val1 = xr.Dataset(
             coords={
-                "time": time_val[0:-42],
-                "prec": [1, 2],
+                "time": time_val[10:],
+                "prec": [3, 4],
                 "lat": (["x", "y"], lat_source),
                 "lon": (["x", "y"], lon_source),
             }
@@ -166,8 +164,8 @@ class create_dataset_from_nextsim_outputs:
         print("VAL OUTPUTS")
         val2 = xr.Dataset(
             coords={
-                "time": time_val[0:-42],
-                "prec": [1, 10, 20],
+                "time": time_val[10:],
+                "prec": [1, 2],
                 "lat": (["x", "y"], lat_source),
                 "lon": (["x", "y"], lon_source),
             }
@@ -177,8 +175,8 @@ class create_dataset_from_nextsim_outputs:
         print("TEST_INPUTS")
         test1 = xr.Dataset(
             coords={
-                "time": time_test[0:-42],
-                "prec": [1, 2],
+                "time": time_test[10:],
+                "prec": [3, 4],
                 "lat": (["x", "y"], lat_source),
                 "lon": (["x", "y"], lon_source),
             }
@@ -188,8 +186,8 @@ class create_dataset_from_nextsim_outputs:
         print("TEST OUTPUTS")
         test2 = xr.Dataset(
             coords={
-                "time": time_test[0:-42],
-                "prec": [1, 10, 20],
+                "time": time_test[10:],
+                "prec": [1, 2],
                 "lat": (["x", "y"], lat_source),
                 "lon": (["x", "y"], lon_source),
             }
@@ -202,8 +200,8 @@ class create_dataset_from_nextsim_outputs:
 
         train1 = xr.Dataset(
             coords={
-                "time": time_train[0:-42],
-                "prec": [1, 2],
+                "time": time_train[10:],
+                "prec": [3, 4],
                 "lat": (["x", "y"], lat_source),
                 "lon": (["x", "y"], lon_source),
             }
@@ -214,8 +212,8 @@ class create_dataset_from_nextsim_outputs:
         print(train1)
         train2 = xr.Dataset(
             coords={
-                "time": time_train[0:-42],
-                "prec": [1, 10, 20],
+                "time": time_train[10:],
+                "prec": [1, 2],
                 "lat": (["x", "y"], lat_source),
                 "lon": (["x", "y"], lon_source),
             }
@@ -274,7 +272,13 @@ class create_dataset_from_nextsim_outputs:
         dataset_val = xr.open_dataset("../../Forcings/ERA5_" + variable + "_y2017.nc")
         dataset_val.fillna(0)
 
-        dataset_test = xr.open_dataset("../../Forcings/ERA5_" + variable + "_y2018.nc")
+        liste = []
+        years_train = ["2017", "2018"]
+        for y in years_train:
+            liste.append("../../Forcings/ERA5_" + variable + "_y" + y + ".nc")
+        print(liste)
+        dataset_test = xr.open_mfdataset(liste)
+
         dataset_test.fillna(0)
 
         time_test = dataset_test.time.data
@@ -318,16 +322,16 @@ class create_dataset_from_nextsim_outputs:
         print(np.shape(lon_source))
         dataset_train = xr.Dataset(
             coords={
-                "time": time_train[0:-42],
-                "prec": [1, 2, 3, 4],
+                "time": time_train[10:],
+                "prec": [3, 4, 5, 6],
                 "lat": (["x", "y"], lat_source),
                 "lon": (["x", "y"], lon_source),
             }
         )
         dataset_val = xr.Dataset(
             coords={
-                "time": time_val[0:-42],
-                "prec": [1, 2, 3, 4],
+                "time": time_val[10:],
+                "prec": [3, 4, 5, 6],
                 "lat": (["x", "y"], lat_source),
                 "lon": (["x", "y"], lon_source),
             }
@@ -335,26 +339,22 @@ class create_dataset_from_nextsim_outputs:
 
         dataset_test = xr.Dataset(
             coords={
-                "time": time_test[0:-42],
-                "prec": [1, 2, 3, 4],
+                "time": time_test[10:],
+                "prec": [3, 4, 5, 6],
                 "lat": (["x", "y"], lat_source),
                 "lon": (["x", "y"], lon_source),
             }
         )
         print("Add variables")
-        print(np.shape(time_train[:-42]))
-        print(np.shape(np.array(forcings_train[data_name])[:-42]))
-        print(np.shape(np.array(forcings_train[data_name])[2:-40]))
-        print(np.shape(np.array(forcings_train[data_name])[3:-39]))
-        print(np.shape(np.array(forcings_train[data_name])[4:-38]))
+
         dataset_train[data_name] = (
             ["time", "prec", "lat", "lon"],
             np.array(
                 [
-                    np.array(forcings_train[data_name])[:-42],
-                    np.array(forcings_train[data_name])[2:-40],
-                    np.array(forcings_train[data_name])[3:-39],
-                    np.array(forcings_train[data_name])[4:-38],
+                    np.array(forcings_train[data_name])[4:-6],
+                    np.array(forcings_train[data_name])[6:-4],
+                    np.array(forcings_train[data_name])[7:-3],
+                    np.array(forcings_train[data_name])[8:-2],
                 ]
             ).transpose((1, 0, 2, 3)),
         )
@@ -363,10 +363,10 @@ class create_dataset_from_nextsim_outputs:
             ["time", "prec", "lat", "lon"],
             np.array(
                 [
-                    np.array(forcings_val[data_name])[:-42],
-                    np.array(forcings_val[data_name])[2:-40],
-                    np.array(forcings_val[data_name])[3:-39],
-                    np.array(forcings_val[data_name])[4:-38],
+                    np.array(forcings_val[data_name])[4:-6],
+                    np.array(forcings_val[data_name])[6:-4],
+                    np.array(forcings_val[data_name])[7:-3],
+                    np.array(forcings_val[data_name])[8:-2],
                 ]
             ).transpose((1, 0, 2, 3)),
         )
@@ -374,10 +374,10 @@ class create_dataset_from_nextsim_outputs:
             ["time", "prec", "lat", "lon"],
             np.array(
                 [
-                    np.array(forcings_test[data_name])[:-42],
-                    np.array(forcings_test[data_name])[2:-40],
-                    np.array(forcings_test[data_name])[3:-39],
-                    np.array(forcings_test[data_name])[4:-38],
+                    np.array(forcings_test[data_name])[4:-6],
+                    np.array(forcings_test[data_name])[6:-4],
+                    np.array(forcings_test[data_name])[7:-3],
+                    np.array(forcings_test[data_name])[8:-2],
                 ]
             ).transpose((1, 0, 2, 3)),
         )
@@ -385,19 +385,25 @@ class create_dataset_from_nextsim_outputs:
         #    norm = xr.merge([dataset_2009,dataset_2010,dataset_2011,
         #                    dataset_2012,dataset_2013,dataset_2014,
         #                   dataset_2015,dataset_2016])
-        mean = dataset_train[data_name].mean(skipna=True)
+        mean = (
+            dataset_train[data_name].mean(dim=["time", "prec", "lat", "lon"]).to_numpy()
+        )
 
-        std = dataset_train[data_name].std(skipna=True)
-
+        print(mean)
+        std = (
+            dataset_train[data_name].std(dim=["time", "prec", "lat", "lon"]).to_numpy()
+        )
+        print(std)
         dataset_train[data_name] = (dataset_train[data_name] - mean) / std
 
         dataset_val[data_name] = (dataset_val[data_name] - mean) / std
         dataset_test[data_name] = (dataset_test[data_name] - mean) / std
-
-        print(dataset_val[data_name].mean(skipna=True))
+        print(dataset_train[data_name].mean(skipna=True))
+        print(dataset_train[data_name].std(skipna=True))
+        print(dataset_test[data_name].mean(skipna=True))
         print(dataset_test[data_name].std(skipna=True))
         print("WRITE")
-        print(dataset_train)
+
         dataset_train.to_netcdf(path="./" + data_name + "_train_forcings.nc", mode="w")
         dataset_val.to_netcdf(path="./" + data_name + "_val_forcings.nc", mode="w")
         dataset_test.to_netcdf(path="./" + data_name + "_test_forcings.nc", mode="w")
@@ -422,38 +428,38 @@ class create_dataset_from_nextsim_outputs:
         climatology = xtrain.groupby("time.day").mean("time")
 
         print(climatology["inputs_sit"])
-        #        print( ytrain["outputs_sit"].groupby('time.dayofyear'))
+        print(ytrain["outputs_sit"].groupby("time.dayofyear"))
         # ytrain["outputs_sit"] = ytrain["outputs_sit"] + climatology["inputs_sit"]
 
-        #        print('y_train')
-        #        print(ytrain)
+        print("y_train")
+        print(ytrain)
         np.save("climatology_before_norm.npy", climatology["inputs_sit"])
-        mean_input = xtrain.mean(dim=["time", "lat", "lon", "x", "y"])
+        mean_input = xtrain.mean(dim=["time", "prec", "lat", "lon", "x", "y"])
         print(mean_input)
-        std_input = xtrain.std(dim=["time", "lat", "lon", "x", "y"])
+        std_input = xtrain.std(dim=["time", "prec", "lat", "lon", "x", "y"])
         print(std_input)
         mean_output = ytrain.mean(dim=["time", "lat", "lon", "x", "y"])
         std_output = ytrain.std(dim=["time", "lat", "lon", "x", "y"])
         print(mean_output)
         print(std_output)
-        print(mean_input["inputs_sit"][0])
-        np.save("mean_input_sit.npy", mean_input["inputs_sit"][0])
-        np.save("mean_output_sit.npy", mean_output["outputs_sit"][0])
-        np.save("std_input_sit.npy", std_input["inputs_sit"][0])
-        np.save("std_output_sit.npy", std_output["outputs_sit"][0])
+        print(mean_input["inputs_sit"])
+        # np.save('mean_input_sit.npy', mean_input['inputs_sit'][0])
+        # np.save('mean_output_sit.npy', mean_output['outputs_sit'][0])
+        # np.save('std_input_sit.npy', std_input['inputs_sit'][0])
+        # np.save('std_output_sit.npy', std_output['outputs_sit'][0])
 
         mask = np.load("mask.npy")
         mask = np.multiply(mask, 1.0)
         print("Normalize input")
-        xtrain = (xtrain - mean_input) / std_input
+        # xtrain = (xtrain - mean_input)/std_input
 
-        xval = (xval - mean_input) / std_input
+        # xval = (xval-mean_input)/std_input
 
-        xtest = (xtest - mean_input) / std_input
+        # xtest = (xtest - mean_input)/std_input
 
-        climatology_after_norm = xtrain.groupby("time.dayofyear").mean("time")
-        print(climatology_after_norm)
-        np.save("climatology_after_norm.npy", climatology_after_norm["inputs_sit"])
+        # climatology_after_norm = xtrain.groupby('time.dayofyear').mean('time')
+        # print(climatology_after_norm)
+        # np.save('climatology_after_norm.npy', climatology_after_norm['inputs_sit'])
 
         print("Normalize output")
         ytrain = (ytrain - mean_output) / std_output
@@ -472,41 +478,41 @@ class create_dataset_from_nextsim_outputs:
         ytest.to_netcdf("ytest_norm.nc", mode="w")
 
     def merge_sit_forcings(self):
-        x1 = xr.open_dataset("xtrain_norm.nc")
-        x2 = xr.open_dataset("u10_train_forcings.nc")
-        x3 = xr.open_dataset("v10_train_forcings.nc")
-        x5 = xr.open_dataset("t2m_train_forcings.nc")
+        # x1 = xr.open_dataset('xtrain_norm.nc')
+        # x2 = xr.open_dataset('u10_train_forcings.nc')
+        # x3 = xr.open_dataset('v10_train_forcings.nc')
+        # x5 = xr.open_dataset('t2m_train_forcings.nc')
 
-        x = xr.merge([x1, x2, x3, x5])
-        print(x)
-        x.to_netcdf("train_input.nc", mode="w")
+        # x = xr.merge([x1,x2,x3,x5])
+        # print(x)
+        # x.to_netcdf('train_input.nc', mode = 'w')
 
-        x1 = xr.open_dataset("xval_norm.nc")
-        x2 = xr.open_dataset("u10_val_forcings.nc")
-        x3 = xr.open_dataset("v10_val_forcings.nc")
-        x5 = xr.open_dataset("t2m_val_forcings.nc")
+        # x1 = xr.open_dataset('xval_norm.nc')
+        # x2 = xr.open_dataset('u10_val_forcings.nc')
+        # x3 = xr.open_dataset('v10_val_forcings.nc')
+        # x5 = xr.open_dataset('t2m_val_forcings.nc')
 
-        x = xr.merge([x1, x2, x3, x5])
-        print(x)
-        x.to_netcdf("val_input.nc", mode="w")
+        # x = xr.merge([x1,x2,x3,x5])
+        # print(x)
+        # x.to_netcdf('val_input.nc', mode = 'w')
 
-        x1 = xr.open_dataset("xtest_norm.nc")
-        x2 = xr.open_dataset("u10_test_forcings.nc")
-        x3 = xr.open_dataset("v10_test_forcings.nc")
-        x5 = xr.open_dataset("t2m_test_forcings.nc")
+        # x1 = xr.open_dataset('xtest_norm.nc')
+        # x2 = xr.open_dataset('u10_test_forcings.nc')
+        # x3 = xr.open_dataset('v10_test_forcings.nc')
+        # x5 = xr.open_dataset('t2m_test_forcings.nc')
 
-        x = xr.merge([x1, x2, x3, x5])
-        print(x)
-        x.to_netcdf("test_input.nc", mode="w")
+        # x = xr.merge([x1,x2,x3,x5])
+        print("ahah")
+        # x.to_netcdf('test_input.nc', mode = 'w')
 
     def split_train_in_years(self):
-        x = xr.load_dataset("train_input.nc")
+        # x = xr.load_dataset('train_input.nc')
 
-        years, datasets = zip(*x.groupby("time.year"))
+        # years, datasets = zip(*x.groupby("time.year"))
 
-        paths = [f"{y}_input.nc" for y in years]
+        # paths = [f"{y}_input.nc" for y in years]
 
-        xr.save_mfdataset(datasets, paths)
+        # xr.save_mfdataset(datasets, paths)
         y = xr.load_dataset("ytrain_norm.nc")
 
         years, datasets = zip(*y.groupby("time.year"))
@@ -517,7 +523,7 @@ class create_dataset_from_nextsim_outputs:
 
 
 data = create_dataset_from_nextsim_outputs(N_res=1)
-# data.make_sit()
+data.make_sit()
 data.create_forcings("../../Data/Moorings_2018m08.nc")
 data.normalisation("CoarseResolution/")
 data.merge_sit_forcings()

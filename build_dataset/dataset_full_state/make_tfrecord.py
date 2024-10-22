@@ -115,43 +115,26 @@ def split_tfrecord(tfrecord_path, split_size):
 ##      Test and Use Cases     ##
 #################################
 
-data = xr.open_dataset("2016_input.nc")
-data = data.drop_dims(["x", "y"])
-data = data.to_array().to_numpy()
-X = data
-print(data[:, 0, 120:130, 120])
-X = np.swapaxes(X, 0, 1)
-X = X.reshape((np.shape(X)[0], -1))
-
-Y = xr.open_dataset("2016_output.nc")
-Y = Y.drop_dims(["x", "y"])
-Y = Y.to_array().to_numpy()
-Y = np.swapaxes(Y, 0, 1)
-Y = Y.reshape((np.shape(Y)[0], -1))
-
-np_to_tfrecords(X, Y, "train_2016", verbose=True)
-split_tfrecord("train_2016.tfrecords", 60)
-
-
 # 1-1. Saving a dataset with input and label (supervised learning)
-data = xr.open_dataset("val_input.nc")
-data = data.drop_dims(["x", "y"])
-data = data.to_array().to_numpy()
-print(np.shape(data))
-print(data[:, 0, 120:130, 100])
-X = data
-X = np.swapaxes(X, 0, 1)
-X = X.reshape((np.shape(X)[0], -1))
+# data = xr.open_dataset('val_input.nc')
+# print(data.type())
+# data = data.drop_dims(['x','y'])
+# data = data.to_array().to_numpy()
+# print(np.shape(data))
+# print(data[:,0,120:130,100])
+# X = data
+# X = np.swapaxes(X,0, 1)
+# X = X.reshape((np.shape(X)[0],-1))
 
-Y = xr.open_dataset("yval_norm.nc")
-Y = Y.drop_dims(["x", "y"])
-Y = Y.to_array().to_numpy()
-print(np.shape(Y))
-Y = np.swapaxes(Y, 0, 1)
-Y = Y.reshape((np.shape(Y)[0], -1))
+# Y = xr.open_dataset('yval_norm.nc')
+# Y = Y.drop_dims(['x','y'])
+# Y = Y.to_array().to_numpy()
+# print(np.shape(Y))
+# Y = np.swapaxes(Y,0, 1)
+# Y = Y.reshape((np.shape(Y)[0],-1))
 
-np_to_tfrecords(X, Y, "val", verbose=True)
-split_tfrecord("val.tfrecords", 60)
+# np_to_tfrecords(X, Y, 'val', verbose=True)
+# split_tfrecord('val.tfrecords', 60)
 
 data = xr.open_dataset("test_input.nc")
 
@@ -161,12 +144,14 @@ print(data[:, 0, 120:130, 120])
 X = data
 X = np.swapaxes(X, 0, 1)
 X = X.reshape((np.shape(X)[0], -1))
-X = X[:-1]
+X = X[1340:-1]
+print(np.shape(X))
 Y = xr.open_dataset("ytest_norm.nc")
 Y = Y.drop_dims(["x", "y"])
 Y = Y.to_array().to_numpy()
 Y = np.swapaxes(Y, 0, 1)
 Y = Y.reshape((np.shape(Y)[0], -1))
+Y = Y[1340:]
 np_to_tfrecords(X, Y, "test", verbose=True)
 split_tfrecord("test.tfrecords", 60)
 
@@ -199,7 +184,7 @@ X = X.reshape((np.shape(X)[0], -1))
 
 Y = xr.open_dataset("2010_output.nc")
 Y = Y.drop_dims(["x", "y"])
-Y = Y.to_array().to_numpy()
+Y = Y.to_array().to_numpy()  #
 Y = np.swapaxes(Y, 0, 1)
 Y = Y.reshape((np.shape(Y)[0], -1))
 
