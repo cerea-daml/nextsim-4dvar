@@ -6,14 +6,15 @@ from tqdm import trange
 from skimage.measure import block_reduce
 from scipy.spatial import cKDTree
 
-###################################
+#####################################################################################
 # Python script for the generation of data over NextSIM Simulation results for 2018 #
-#################################
+#####################################################################################
 
 
 class create_dataset_from_nextsim_outputs:
     def __init__(self, N_res):
         self.N_res = N_res
+	self.path_to_nextsim = "../../Data/"
 
     def prepare_data(self, sit):
         N = np.shape(sit)[0]
@@ -67,14 +68,14 @@ class create_dataset_from_nextsim_outputs:
         ]
         for y in years_train:
             for m in months:
-                liste.append("../../Data/Moorings_" + y + "m" + m + ".nc")
+                liste.append(self.path_to_nextsim+'Moorings_' + y + "m" + m + ".nc")
         print("Build Train")
         ds_train = xr.open_mfdataset(liste)
         sit_train = ds_train.sit
         time_train = ds_train.time
         sit_train = sit_train.to_masked_array()
         print("Build Val")
-        ds_val = xr.open_mfdataset("../../Data/Moorings_2017m*.nc")
+        ds_val = xr.open_mfdataset(self.path_to_nextsim+"Moorings_" +"2017m*.nc")
         sit_val = ds_val.sit
         time_val = ds_val.time
         sit_val = sit_val.to_masked_array()
@@ -97,7 +98,7 @@ class create_dataset_from_nextsim_outputs:
         ]
         for y in years_train:
             for m in months:
-                liste.append("../../Data/Moorings_" + y + "m" + m + ".nc")
+                liste.append(self.path_to_nextsim+'Moorings_'+ y + "m" + m + ".nc")
         ds_test = xr.open_mfdataset(liste)
         sit_test = ds_test.sit
         time_test = ds_test.time
@@ -142,7 +143,7 @@ class create_dataset_from_nextsim_outputs:
             x_test[i, :, :, 0] = x_te[i + 4].squeeze()
             x_test[i, :, :, 1] = x_te[i + 6].squeeze()
 
-        source = xr.open_dataset("../../Data/Moorings_2009m01.nc")
+        source = xr.open_dataset(self.path_to_nextsim+'Moorings_' +"2009m01.nc")
         lat_source = source.variables["latitude"][91:, 8:-8]
         lon_source = source.variables["longitude"][91:, 8:-8]
         lat_source = lat_source[:: self.N_res, :: self.N_res]
