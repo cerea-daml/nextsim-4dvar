@@ -115,26 +115,22 @@ def split_tfrecord(tfrecord_path, split_size):
 ##      Test and Use Cases     ##
 #################################
 
-# 1-1. Saving a dataset with input and label (supervised learning)
-# data = xr.open_dataset('val_input.nc')
-# print(data.type())
-# data = data.drop_dims(['x','y'])
-# data = data.to_array().to_numpy()
-# print(np.shape(data))
-# print(data[:,0,120:130,100])
-# X = data
-# X = np.swapaxes(X,0, 1)
-# X = X.reshape((np.shape(X)[0],-1))
+ #1-1. Saving a dataset with input and label (supervised learning)
+data = xr.open_dataset('val_input.nc')
+data = data.drop_dims(['x','y'])
+data = data.to_array().to_numpy()
+X = data
+X = np.swapaxes(X,0, 1)
+X = X.reshape((np.shape(X)[0],-1))
 
-# Y = xr.open_dataset('yval_norm.nc')
-# Y = Y.drop_dims(['x','y'])
-# Y = Y.to_array().to_numpy()
-# print(np.shape(Y))
-# Y = np.swapaxes(Y,0, 1)
-# Y = Y.reshape((np.shape(Y)[0],-1))
+Y = xr.open_dataset('yval_norm.nc')
+Y = Y.drop_dims(['x','y'])
+Y = Y.to_array().to_numpy()
+Y = np.swapaxes(Y,0, 1)
+Y = Y.reshape((np.shape(Y)[0],-1))
 
-# np_to_tfrecords(X, Y, 'val', verbose=True)
-# split_tfrecord('val.tfrecords', 60)
+np_to_tfrecords(X, Y, 'val', verbose=True)
+split_tfrecord('val.tfrecords', 60)
 
 data = xr.open_dataset("test_input.nc")
 
